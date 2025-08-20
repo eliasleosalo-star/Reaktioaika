@@ -1,11 +1,10 @@
-
 <!DOCTYPE html>
 <html lang="fi">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Reaktioaika.fi – Valitse peli</title>
-  <meta name="description" content="Testaa reaktioaikasi kolmella pelillä: vihreä tausta, täppää kohde ja aikaarvio 30 s. 5 yrityksen sarjat, keskiarvo ja paras tulos." />
+  <meta name="description" content="Testaa reaktioaikasi kahdella pelillä: vihreä tausta ja aikaarvio 30 s. 5 yrityksen sarjat, keskiarvo ja paras tulos." />
   <style>
     :root{
       --bg: #0f172a;      /* tausta */
@@ -41,8 +40,6 @@
     button{appearance:none; border:none; border-radius:10px; padding:10px 14px; cursor:pointer; font-weight:700; color:var(--text); background:#1f2937}
     button:hover{background:#374151}
     footer{padding:14px; color:var(--sub); text-align:center; font-size:12px}
-    /* Tap target */
-    .target{position:fixed; width:60px; height:60px; border-radius:9999px; background:var(--bg-go); box-shadow:0 0 0 6px rgba(34,197,94,.3); cursor:pointer; z-index:10}
   </style>
 </head>
 <body>
@@ -52,7 +49,6 @@
       <label for="game-select">Valitse peli:</label>
       <select id="game-select">
         <option value="reaction">Reaktiotesti (vihreä tausta)</option>
-        <option value="tap-target">Täppää kohde</option>
         <option value="time-guess">Aikaarvio 30 s</option>
       </select>
     </div>
@@ -102,21 +98,33 @@
     let best = 0;       // pienin reaktio / pienin virhe (pelikohtainen)
     let startTs = 0;
     let timer = null;
-    let targetEl = null; // tap-targetin elementti
 
-    // --- Apurit
+    // --- Formatterit
     const fmtMs = (ms) => Math.round(ms) + ' ms';
+    const fmtSec = (ms) => (ms/1000).toFixed(2).replace('.', ',') + ' s'; // 2,35 s
     const avg = (arr) => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;
+
     const saveBest = () => localStorage.setItem('best_'+game, String(best));
     const loadBest = () => Number(localStorage.getItem('best_'+game) || '0');
     const setBg = (c) => document.body.style.background = c || 'var(--bg)';
+
     function updateStats(lastVal=null){
-      lastEl.textContent = lastVal!=null ? fmtMs(lastVal) : (results.length?fmtMs(results.at(-1)):'–');
-      bestEl.textContent = best ? fmtMs(best) : '–';
-      const a = avg(results);
-      avgEl.textContent = results.length ? fmtMs(a) : '–';
-      histEl.textContent = results.length ? results.map(v=>fmtMs(v)).join(' · ') : '—';
+      if (game === 'time-guess') {
+        const show = (v) => fmtSec(v);
+        lastEl.textContent = lastVal!=null ? show(lastVal) : (results.length ? show(results.at(-1)) : '–');
+        bestEl.textContent = best ? show(best) : '–';
+        const a = avg(results);
+        avgEl.textContent = results.length ? show(a) : '–';
+        histEl.textContent = results.length ? results.map(show).join(' · ') : '—';
+      } else {
+        lastEl.textContent = lastVal!=null ? fmtMs(lastVal) : (results.length?fmtMs(results.at(-1)):'–');
+        bestEl.textContent = best ? fmtMs(best) : '–';
+        const a = avg(results);
+        avgEl.textContent = results.length ? fmtMs(a) : '–';
+        histEl.textContent = results.length ? results.map(v=>fmtMs(v)).join(' · ') : '—';
+      }
     }
+
     function resetSeries(keepBest=true){
       results = [];
       if(!keepBest){ best = 0; saveBest(); }
@@ -126,9 +134,6 @@
       if(game==='reaction'){
         msg.textContent = 'Klikkaa aloittaaksesi – odota vihreää';
         sub.innerHTML = 'Sarja: 5 yritystä. Älä klikkaa ennen vihreää.';
-      } else if(game==='tap-target'){
-        msg.textContent = 'Klikkaa aloittaaksesi – kohde ilmestyy viiveellä';
-        sub.innerHTML = 'Etsi vihreä ympyrä ja täppää mahdollisimman nopeasti.';
       } else if(game==='time-guess'){
         msg.textContent = 'Klikkaa aloittaaksesi aikaarvion (30 s)';
         sub.innerHTML = 'Paina uudelleen, kun <strong>arvioit 30 sekunnin</strong> kuluneen.';
@@ -137,8 +142,6 @@
 
     // --- Pelinvaihto
     function setGame(id){
-      // siivoa mahdollinen target
-      targetEl?.remove(); targetEl = null;
       clearTimeout(timer); timer = null;
       game = id;
       best = loadBest();
@@ -162,23 +165,12 @@
           sub.textContent='Mittaa reaktioaikasi';
         }, 2500 + Math.random()*3500); // 2500–6000 ms
       }
-      else if(game==='tap-target'){
-        state='wait';
-        msg.textContent='Odota kohdetta…';
-        sub.textContent='Kohde ilmestyy satunnaiseen kohtaan.';
-        timer = setTimeout(()=>{
-          state='go';
-          startTs = performance.now();
-          spawnTarget();
-        }, 2500 + Math.random()*3500);
-      }
       else if(game==='time-guess'){
         // Käynnistä aikamittaus ilman näkyvää kelloa
         state='timing';
         startTs = performance.now();
         msg.textContent='Käynnissä… Klikkaa, kun 30 s on mielestäsi kulunut.';
         sub.textContent='Vinkki: älä laske ääneen – luota tuntumaan.';
-        // neutraali sävy, ettei vihjeitä
         setBg('#0f172a');
       }
     }
@@ -208,35 +200,6 @@
       }
     }
 
-    function spawnTarget(){
-      targetEl?.remove();
-      targetEl = document.createElement('div');
-      targetEl.className = 'target';
-      const m = 80;
-      const x = m + Math.random()*(window.innerWidth - 2*m - 60);
-      const y = m + Math.random()*(window.innerHeight - 2*m - 60);
-      targetEl.style.left = x+'px';
-      targetEl.style.top  = y+'px';
-      const handler = () => {
-        const rt = performance.now() - startTs;
-        targetEl?.remove(); targetEl = null;
-        results.push(rt);
-        if(!best || rt < best){ best = rt; saveBest(); }
-        updateStats(rt);
-        if(results.length>=TRIALS){
-          state='done';
-          msg.textContent = 'Sarja valmis! Keskiarvo: ' + fmtMs(avg(results));
-          sub.textContent = 'Klikkaa aloittaaksesi uuden 5 yrityksen sarjan.';
-        } else {
-          state='idle';
-          msg.textContent='Hyvä! Klikkaa jatkaaksesi';
-          sub.textContent='Uusi kohde ilmestyy viiveellä.';
-        }
-      };
-      targetEl.addEventListener('pointerdown', handler, { once:true });
-      document.body.appendChild(targetEl);
-    }
-
     function finishTimeGuess(){
       const elapsed = performance.now() - startTs; // ms
       const target = 30000; // 30 s
@@ -244,12 +207,10 @@
       results.push(error);
       if(!best || error < best){ best = error; saveBest(); }
       updateStats(error);
-      const s = (elapsed/1000).toFixed(2);
-      const e = (error/1000).toFixed(2);
-      msg.textContent = `Arvioit: ${s} s → virhe ${e} s`;
+      msg.textContent = `Arvioit: ${fmtSec(elapsed)} → virhe ${fmtSec(error)}`;
       if(results.length>=TRIALS){
         state='done';
-        sub.textContent = 'Sarja valmis! Keskivirhe: ' + fmtMs(avg(results));
+        sub.textContent = 'Sarja valmis! Keskivirhe: ' + fmtSec(avg(results));
       } else {
         state='idle';
         sub.textContent = 'Klikkaa aloittaaksesi seuraavan arvion.';
@@ -263,11 +224,6 @@
         else if(state==='wait'){ tooSoon(); }
         else if(state==='go'){ finishReaction(); }
       }
-      else if(game==='tap-target'){
-        if(state==='idle' || state==='done'){ startRound(); }
-        // 'wait' aikana klikkaukset eivät tee mitään (kohde ei ole näkyvissä)
-        // 'go' tilan klikkaus hoidetaan target-elementissä
-      }
       else if(game==='time-guess'){
         if(state==='idle' || state==='done'){ startRound(); }
         else if(state==='timing'){ finishTimeGuess(); }
@@ -278,14 +234,10 @@
       if(e.repeat) return;
       if(e.code==='Space' || e.code==='Enter' || e.code==='NumpadEnter'){
         e.preventDefault();
-        // Näppäinkäytös sama kuin klikkaus
         if(game==='reaction'){
           if(state==='idle' || state==='done' || state==='early'){ startRound(); }
           else if(state==='wait'){ tooSoon(); }
           else if(state==='go'){ finishReaction(); }
-        }
-        else if(game==='tap-target'){
-          if(state==='idle' || state==='done'){ startRound(); }
         }
         else if(game==='time-guess'){
           if(state==='idle' || state==='done'){ startRound(); }
@@ -303,14 +255,13 @@
       sub.textContent = 'Sarja: 5 yritystä.';
       state = 'idle';
       setBg('var(--bg)');
-      targetEl?.remove(); targetEl=null;
     });
 
     // --- Init
     (function init(){
       // peli URL-paramista (esim. ?game=time-guess)
       const p = new URLSearchParams(location.search).get('game');
-      if(p && ['reaction','tap-target','time-guess'].includes(p)){
+      if(p && ['reaction','time-guess'].includes(p)){
         sel.value = p;
       }
       setGame(sel.value);
