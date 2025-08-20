@@ -3,303 +3,316 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Reaktioaikatesti – Testaa reaktioaikasi verkossa</title>
-  <meta name="description" content="Yksinkertainen ja hauska reaktioaikatesti: odota vihreää ja klikkaa niin nopeasti kuin pystyt. Testaa ja jaa tuloksesi!" />
-  <meta name="keywords" content="reaktioaikatesti, reaktioaika, reaction time test, peli, testi, nopeus" />
-  <meta name="author" content="Elias Leosalo" />
-  <meta name="google-site-verification" content="i7sBGgDOuck7BBuLbRntRqmrJY8sXkDfXSTVHi5Qzlo" />
+  <title>Reaktioaika.fi – Valitse peli</title>
+  <meta name="description" content="Testaa reaktioaikasi kolmella pelillä: vihreä tausta, täppää kohde ja aikaarvio 30 s. 5 yrityksen sarjat, keskiarvo ja paras tulos." />
   <style>
-    :root {
-      --bg-idle: #0f172a;
-      --bg-wait: #ef4444;
-      --bg-go:   #22c55e;
-      --bg-early:#f59e0b;
-      --text:    #e5e7eb;
-      --muted:   #94a3b8;
-      --card:    rgba(15, 23, 42, 0.6);
-      --btn:     #1f2937;
-      --btnh:    #374151;
-      --accent:  #38bdf8;
+    :root{
+      --bg: #0f172a;      /* tausta */
+      --bg-wait:#ef4444;  /* punainen */
+      --bg-go:#22c55e;    /* vihreä */
+      --text:#e5e7eb;
+      --sub:#94a3b8;
+      --panel: rgba(255,255,255,.06);
+      --border: rgba(255,255,255,.12);
+      --accent:#38bdf8;
     }
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
-    body {
-      margin: 0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-      color: var(--text);
-      display: grid;
-      place-items: center;
-      background: var(--bg-idle);
-      transition: background-color 140ms ease-in-out, background 140ms ease-in-out;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-      outline: none;
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background:var(--bg); color:var(--text); display:flex; flex-direction:column; min-height:100vh;
+      transition:background 140ms ease-in-out;
+      user-select:none; -webkit-tap-highlight-color:transparent; touch-action:manipulation;
     }
-    body.wait    { background: var(--bg-wait); }
-    body.go      { background: var(--bg-go); }
-    body.early   { background: var(--bg-early); }
-
-    #app { width: min(960px, 95vw); display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 24px; }
-    .title { font-size: clamp(28px, 5vw, 44px); font-weight: 800; }
-    .message { font-size: clamp(22px, 4vw, 34px); font-weight: 700; }
-    .subtext { font-size: clamp(14px, 2.4vw, 18px); color: var(--muted); }
-    .row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; }
-    .panel { background: var(--card); border: 1px solid rgba(255,255,255,0.12); backdrop-filter: blur(6px); padding: 16px 18px; border-radius: 16px; }
-    .stat { font-size: clamp(22px, 4vw, 30px); font-weight: 800; }
-    .small { font-size: 12px; letter-spacing: 0.4px; text-transform: uppercase; color: var(--muted); }
-    footer { opacity: 0.9; font-size: 12px; color: var(--muted); text-align: center; }
-    a { color: var(--accent); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    .kbd { font-family: ui-monospace; font-weight: 700; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.18); }
-    #overlay { position: fixed; inset: 0; }
-    .spacer { height: clamp(160px, 34vh, 420px); width: 100%; pointer-events: none; }
-    /* FAQ */
-    details.faq { text-align: left; background: var(--card); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 12px 14px; }
-    details.faq + details.faq { margin-top: 10px; }
-    details.faq[open] { border-color: rgba(255,255,255,0.2); }
-    details.faq summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 800; }
-    details.faq summary::-webkit-details-marker { display: none; }
-    .faq-content { color: var(--muted); margin-top: 8px; line-height: 1.5; }
+    header{padding:16px; background:#1e293b; display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:center; text-align:center}
+    header h1{margin:0; font-size:20px; font-weight:800}
+    header .select-wrap{display:flex; gap:8px; align-items:center}
+    select{padding:8px 12px; border-radius:10px; border:1px solid var(--border); background:#0b1220; color:var(--text)}
+    main{flex:1; display:flex; flex-direction:column; align-items:center; gap:16px; padding:18px; text-align:center}
+    .title{font-size:clamp(22px,3.8vw,32px); font-weight:800}
+    .sub {color:var(--sub)}
+    .kbd{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace; font-weight:700; background:rgba(255,255,255,.08); padding:2px 6px; border-radius:6px; border:1px solid var(--border)}
+    .spacer{height:clamp(160px,34vh,440px); width:100%}
+    .panel{width:min(960px,95vw); background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:14px}
+    .row{display:flex; flex-wrap:wrap; gap:14px; align-items:center; justify-content:space-between}
+    .stat{font-size:clamp(22px,4vw,28px); font-weight:800}
+    .small{font-size:12px; color:var(--sub); text-transform:uppercase; letter-spacing:.3px}
+    button{appearance:none; border:none; border-radius:10px; padding:10px 14px; cursor:pointer; font-weight:700; color:var(--text); background:#1f2937}
+    button:hover{background:#374151}
+    footer{padding:14px; color:var(--sub); text-align:center; font-size:12px}
+    /* Tap target */
+    .target{position:fixed; width:60px; height:60px; border-radius:9999px; background:var(--bg-go); box-shadow:0 0 0 6px rgba(34,197,94,.3); cursor:pointer; z-index:10}
   </style>
 </head>
-<body tabindex="0" aria-live="polite">
-  <div id="overlay" aria-hidden="true"></div>
-  <main id="app" role="main">
-    <div class="title">Reaktioaikatesti</div>
-    <div id="message" class="message">Klikkaa tai paina <span class="kbd">välilyönti</span> aloittaaksesi</div>
-    <div id="sub" class="subtext">Kun tausta vaihtuu <strong>vihreäksi</strong>, klikkaa niin nopeasti kuin pystyt.</div>
+<body>
+  <header>
+    <h1>Reaktioaika.fi – Pelit</h1>
+    <div class="select-wrap">
+      <label for="game-select">Valitse peli:</label>
+      <select id="game-select">
+        <option value="reaction">Reaktiotesti (vihreä tausta)</option>
+        <option value="tap-target">Täppää kohde</option>
+        <option value="time-guess">Aikaarvio 30 s</option>
+      </select>
+    </div>
+  </header>
+
+  <main>
+    <div class="title" id="message">Valitse peli ja aloita!</div>
+    <div class="sub" id="sub">Klikkaa tai paina <span class="kbd">välilyönti</span> aloittaaksesi.</div>
+
+    <!-- Iso klikkausalue – peli saa tilaa -->
     <div class="spacer" aria-hidden="true"></div>
-    <section id="results" class="panel">
-      <div class="row" style="justify-content: space-between; gap: 16px;">
+
+    <!-- Tulokset -->
+    <section class="panel" aria-label="Tulos & tilastot">
+      <div class="row">
         <div><div class="small">Viimeisin</div><div id="last" class="stat">–</div></div>
         <div><div class="small">Paras</div><div id="best" class="stat">–</div></div>
         <div><div class="small">Keskiarvo (5)</div><div id="avg" class="stat">–</div></div>
       </div>
-      <div class="row" style="margin-top:12px">
-        <button id="toggle-sound" type="button" aria-pressed="true">🔊 Ääni päällä</button>
-        <button id="share" type="button">📤 Jaa tulos</button>
-        <button id="reset" type="button" class="btn-ghost">♻️ Nollaa tilastot</button>
+      <div class="row" style="margin-top:10px;">
+        <button id="reset">♻️ Nollaa</button>
       </div>
-      <div class="subtext" style="margin-top:8px">Vinkki: voit käyttää myös <span class="kbd">Enter</span>- tai <span class="kbd">välilyönti</span>-näppäintä.</div>
-      <div class="small" style="margin-top:12px">Viimeiset tulokset</div>
-      <div id="history" class="subtext">—</div>
+      <div class="small" style="margin-top:10px;">Viimeiset tulokset</div>
+      <div id="history" class="sub">—</div>
     </section>
-    <section class="panel"><div class="small" style="margin-bottom:8px">Lisätietoa</div>
-      <details class="faq"><summary>❓ Mikä on hyvä reaktioaika?</summary><div class="faq-content">Keskimääräinen reaktioaika aikuisilla on noin 250 ms. Nuorilla ja pelaajilla usein 150–200 ms.</div></details>
-      <details class="faq"><summary>⚡ Miten parannan reaktioaikaa?</summary><div class="faq-content">Harjoittelu, uni ja keskittyminen vaikuttavat. Myös silmä–käsi‑koordinaatiota kehittävät lajit auttavat.</div></details>
-      <details class="faq"><summary>🖥️ Vaikuttaako selain tai laite?</summary><div class="faq-content">Kyllä, esim. näytön virkistystaajuus ja laitteen kuormitus voivat tuoda pieniä eroja.</div></details>
-    </section>
-    <footer>Rakennettu ilman kirjastoja. © <span id="year"></span> • <a href="#" id="permalink">Pysyvä linkki</a></footer>
   </main>
+
+  <footer>© <span id="year"></span> Reaktioaika.fi</footer>
+
   <script>
-    (function() {
-      const $ = (id) => document.getElementById(id);
-      const body = document.body;
-      const msg = $("message");
-      const sub = $("sub");
-      const lastEl = $("last");
-      const bestEl = $("best");
-      const avgEl  = $("avg");
-      const histEl = $("history");
-      const btnSound = $("toggle-sound");
-      const btnShare = $("share");
-      const btnReset = $("reset");
-      const overlay = $("overlay");
-      const YEAR = $("year"); YEAR.textContent = new Date().getFullYear();
-      const link = $("permalink"); link.addEventListener('click', e => { e.preventDefault(); navigator.clipboard.writeText(location.href).then(() => toast('Linkki kopioitu')); });
+    // --- Perusviitteet
+    const YEAR = document.getElementById('year'); YEAR.textContent = new Date().getFullYear();
+    const sel = document.getElementById('game-select');
+    const msg = document.getElementById('message');
+    const sub = document.getElementById('sub');
+    const lastEl = document.getElementById('last');
+    const bestEl = document.getElementById('best');
+    const avgEl  = document.getElementById('avg');
+    const histEl = document.getElementById('history');
+    const btnReset = document.getElementById('reset');
 
-      // --- Pelilogiikan tilat
-      const TRIALS = 5;                 // yritysten määrä per sarja
-      let state = 'idle';               // 'idle' | 'wait' | 'go' | 'early' | 'result'
-      let seriesComplete = false;       // tosi kun 5/5 suoritettu
-      let timer = null;
-      let startTs = 0;
+    // --- Peli-tila
+    const TRIALS = 5;
+    let game = 'reaction';
+    let state = 'idle'; // 'idle' | 'wait' | 'go' | 'timing' | 'done' | 'early'
+    let results = [];   // kuluvan sarjan 1..5
+    let best = 0;       // pienin reaktio / pienin virhe (pelikohtainen)
+    let startTs = 0;
+    let timer = null;
+    let targetEl = null; // tap-targetin elementti
 
-      // Tulokset: tämän sarjan tulokset (1..5), pysyvästi tallennetaan vain paras
-      let blockResults = [];
-      let best = Number(localStorage.getItem('rt_best') || '0');
-      let beepOn = JSON.parse(localStorage.getItem('rt_beep') || 'true');
-
-      // --- Ääni (WebAudio) kun GO
-      let ctx = null;
-      function beep() {
-        if (!beepOn) return;
-        try {
-          ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
-          const o = ctx.createOscillator();
-          const g = ctx.createGain();
-          o.type = 'sine';
-          o.frequency.setValueAtTime(880, ctx.currentTime);
-          g.gain.setValueAtTime(0.001, ctx.currentTime);
-          g.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + 0.01);
-          g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.16);
-          o.connect(g).connect(ctx.destination);
-          o.start();
-          o.stop(ctx.currentTime + 0.18);
-        } catch {}
+    // --- Apurit
+    const fmtMs = (ms) => Math.round(ms) + ' ms';
+    const avg = (arr) => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;
+    const saveBest = () => localStorage.setItem('best_'+game, String(best));
+    const loadBest = () => Number(localStorage.getItem('best_'+game) || '0');
+    const setBg = (c) => document.body.style.background = c || 'var(--bg)';
+    function updateStats(lastVal=null){
+      lastEl.textContent = lastVal!=null ? fmtMs(lastVal) : (results.length?fmtMs(results.at(-1)):'–');
+      bestEl.textContent = best ? fmtMs(best) : '–';
+      const a = avg(results);
+      avgEl.textContent = results.length ? fmtMs(a) : '–';
+      histEl.textContent = results.length ? results.map(v=>fmtMs(v)).join(' · ') : '—';
+    }
+    function resetSeries(keepBest=true){
+      results = [];
+      if(!keepBest){ best = 0; saveBest(); }
+      updateStats();
+      state = 'idle';
+      setBg('var(--bg)');
+      if(game==='reaction'){
+        msg.textContent = 'Klikkaa aloittaaksesi – odota vihreää';
+        sub.innerHTML = 'Sarja: 5 yritystä. Älä klikkaa ennen vihreää.';
+      } else if(game==='tap-target'){
+        msg.textContent = 'Klikkaa aloittaaksesi – kohde ilmestyy viiveellä';
+        sub.innerHTML = 'Etsi vihreä ympyrä ja täppää mahdollisimman nopeasti.';
+      } else if(game==='time-guess'){
+        msg.textContent = 'Klikkaa aloittaaksesi aikaarvion (30 s)';
+        sub.innerHTML = 'Paina uudelleen, kun <strong>arvioit 30 sekunnin</strong> kuluneen.';
       }
+    }
 
-      // --- Apurit
-      function fmt(ms) { return Math.round(ms) + ' ms'; }
-      function average(arr){ if(!arr.length) return 0; return arr.reduce((a,b)=>a+b,0)/arr.length; }
-      function saveStats() { localStorage.setItem('rt_best', String(best)); }
+    // --- Pelinvaihto
+    function setGame(id){
+      // siivoa mahdollinen target
+      targetEl?.remove(); targetEl = null;
+      clearTimeout(timer); timer = null;
+      game = id;
+      best = loadBest();
+      resetSeries(true);
+    }
+    sel.addEventListener('change', () => setGame(sel.value));
 
-      function updateStatsDisplay(lastVal = null) {
-        lastEl.textContent = lastVal ? fmt(lastVal) : (blockResults.length ? fmt(blockResults[blockResults.length-1]) : '–');
-        bestEl.textContent = best ? fmt(best) : '–';
-        const avg = average(blockResults);
-        avgEl.textContent = avg ? fmt(avg) : '–';
-        histEl.textContent = blockResults.length ? blockResults.map(v=>fmt(v)).join(' · ') : '—';
-      }
-
-      function setState(next) {
-        state = next;
-        body.classList.remove('wait','go','early');
-        switch(next) {
-          case 'idle':
-            msg.innerHTML = 'Klikkaa tai paina <span class="kbd">välilyönti</span> aloittaaksesi';
-            sub.innerHTML = `Kun tausta vaihtuu <strong>vihreäksi</strong>, klikkaa niin nopeasti kuin pystyt. Sarjassa ${TRIALS} yritystä.`;
-            break;
-          case 'wait':
-            body.classList.add('wait');
-            msg.textContent = 'Odota vihreää…';
-            sub.textContent = 'Älä klikkaa vielä!';
-            break;
-          case 'go':
-            body.classList.add('go');
-            msg.textContent = 'Nyt! Klikkaa!';
-            sub.textContent = 'Mittaa reaktioaikasi';
-            break;
-          case 'early':
-            body.classList.add('early');
-            msg.textContent = 'Liian aikaisin!';
-            sub.textContent = 'Klikkaa yrittääksesi uudelleen';
-            break;
-          case 'result':
-            // viesti asetetaan finishRoundissa jos sarja valmis
-            if (!seriesComplete) {
-              msg.textContent = 'Hyvä! Klikkaa yrittääksesi uudelleen';
-              sub.textContent = 'Kokeile parantaa tulostasi';
-            }
-            break;
-        }
-      }
-
-      function startRound() {
-        if (timer) clearTimeout(timer);
-        setState('wait');
-        // Lisää pari sekuntia viivettä ja tee vaikeammaksi arvata
-        const delay = Math.floor(2500 + Math.random()*3500); // 2500–6000 ms
-        timer = setTimeout(() => {
+    // --- Pelit
+    function startRound(){
+      if(game==='reaction'){
+        // Punainen odotus -> viive -> vihreä
+        state='wait';
+        msg.textContent='Odota vihreää…';
+        sub.textContent='Älä klikkaa vielä!';
+        setBg('var(--bg-wait)');
+        timer = setTimeout(()=>{
+          state='go';
           startTs = performance.now();
-          setState('go');
-          beep();
-        }, delay);
+          setBg('var(--bg-go)');
+          msg.textContent='Nyt! Klikkaa!';
+          sub.textContent='Mittaa reaktioaikasi';
+        }, 2500 + Math.random()*3500); // 2500–6000 ms
       }
-
-      function tooSoon() {
-        if (timer) clearTimeout(timer);
-        setState('early');
+      else if(game==='tap-target'){
+        state='wait';
+        msg.textContent='Odota kohdetta…';
+        sub.textContent='Kohde ilmestyy satunnaiseen kohtaan.';
+        timer = setTimeout(()=>{
+          state='go';
+          startTs = performance.now();
+          spawnTarget();
+        }, 2500 + Math.random()*3500);
       }
+      else if(game==='time-guess'){
+        // Käynnistä aikamittaus ilman näkyvää kelloa
+        state='timing';
+        startTs = performance.now();
+        msg.textContent='Käynnissä… Klikkaa, kun 30 s on mielestäsi kulunut.';
+        sub.textContent='Vinkki: älä laske ääneen – luota tuntumaan.';
+        // neutraali sävy, ettei vihjeitä
+        setBg('#0f172a');
+      }
+    }
 
-      function finishRound() {
+    function tooSoon(){
+      clearTimeout(timer);
+      state='early';
+      msg.textContent='Liian aikaisin!';
+      sub.textContent='Klikkaa aloittaaksesi uuden kierroksen.';
+      setBg('var(--bg)');
+    }
+
+    function finishReaction(){
+      const rt = performance.now() - startTs;
+      results.push(rt);
+      if(!best || rt < best) { best = rt; saveBest(); }
+      updateStats(rt);
+      setBg('var(--bg)');
+      if(results.length>=TRIALS){
+        state='done';
+        msg.textContent = 'Sarja valmis! Keskiarvo: ' + fmtMs(avg(results));
+        sub.textContent = 'Klikkaa aloittaaksesi uuden 5 yrityksen sarjan.';
+      } else {
+        state='idle';
+        msg.textContent='Hyvä! Klikkaa jatkaaksesi';
+        sub.textContent='Yrittelyttääkö parempi tulos?';
+      }
+    }
+
+    function spawnTarget(){
+      targetEl?.remove();
+      targetEl = document.createElement('div');
+      targetEl.className = 'target';
+      const m = 80;
+      const x = m + Math.random()*(window.innerWidth - 2*m - 60);
+      const y = m + Math.random()*(window.innerHeight - 2*m - 60);
+      targetEl.style.left = x+'px';
+      targetEl.style.top  = y+'px';
+      const handler = () => {
         const rt = performance.now() - startTs;
-        blockResults.push(rt);
-        if (!best || rt < best) best = rt;
-        saveStats();
-        updateStatsDisplay(rt);
-        if (blockResults.length >= TRIALS) {
-          seriesComplete = true;
-          msg.textContent = `Sarja valmis! Keskiarvo: ${fmt(average(blockResults))}`;
-          sub.textContent = 'Klikkaa aloittaaksesi uuden 5 yrityksen sarjan';
+        targetEl?.remove(); targetEl = null;
+        results.push(rt);
+        if(!best || rt < best){ best = rt; saveBest(); }
+        updateStats(rt);
+        if(results.length>=TRIALS){
+          state='done';
+          msg.textContent = 'Sarja valmis! Keskiarvo: ' + fmtMs(avg(results));
+          sub.textContent = 'Klikkaa aloittaaksesi uuden 5 yrityksen sarjan.';
+        } else {
+          state='idle';
+          msg.textContent='Hyvä! Klikkaa jatkaaksesi';
+          sub.textContent='Uusi kohde ilmestyy viiveellä.';
         }
-        setState('result');
+      };
+      targetEl.addEventListener('pointerdown', handler, { once:true });
+      document.body.appendChild(targetEl);
+    }
+
+    function finishTimeGuess(){
+      const elapsed = performance.now() - startTs; // ms
+      const target = 30000; // 30 s
+      const error = Math.abs(elapsed - target);
+      results.push(error);
+      if(!best || error < best){ best = error; saveBest(); }
+      updateStats(error);
+      const s = (elapsed/1000).toFixed(2);
+      const e = (error/1000).toFixed(2);
+      msg.textContent = `Arvioit: ${s} s → virhe ${e} s`;
+      if(results.length>=TRIALS){
+        state='done';
+        sub.textContent = 'Sarja valmis! Keskivirhe: ' + fmtMs(avg(results));
+      } else {
+        state='idle';
+        sub.textContent = 'Klikkaa aloittaaksesi seuraavan arvion.';
       }
+    }
 
-      function handlePress() {
-        // Jos sarja valmis, seuraava klikkaus nollaa ja käynnistää uuden sarjan
-        if (seriesComplete && (state==='result' || state==='idle' || state==='early')) {
-          blockResults = [];
-          seriesComplete = false;
-          updateStatsDisplay();
-          startRound();
-          return;
+    // --- Syötteet
+    document.body.addEventListener('pointerdown', () => {
+      if(game==='reaction'){
+        if(state==='idle' || state==='done' || state==='early'){ startRound(); }
+        else if(state==='wait'){ tooSoon(); }
+        else if(state==='go'){ finishReaction(); }
+      }
+      else if(game==='tap-target'){
+        if(state==='idle' || state==='done'){ startRound(); }
+        // 'wait' aikana klikkaukset eivät tee mitään (kohde ei ole näkyvissä)
+        // 'go' tilan klikkaus hoidetaan target-elementissä
+      }
+      else if(game==='time-guess'){
+        if(state==='idle' || state==='done'){ startRound(); }
+        else if(state==='timing'){ finishTimeGuess(); }
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if(e.repeat) return;
+      if(e.code==='Space' || e.code==='Enter' || e.code==='NumpadEnter'){
+        e.preventDefault();
+        // Näppäinkäytös sama kuin klikkaus
+        if(game==='reaction'){
+          if(state==='idle' || state==='done' || state==='early'){ startRound(); }
+          else if(state==='wait'){ tooSoon(); }
+          else if(state==='go'){ finishReaction(); }
         }
-        switch(state) {
-          case 'idle':
-          case 'result':
-          case 'early':
-            startRound();
-            break;
-          case 'wait':
-            tooSoon();
-            break;
-          case 'go':
-            finishRound();
-            break;
+        else if(game==='tap-target'){
+          if(state==='idle' || state==='done'){ startRound(); }
+        }
+        else if(game==='time-guess'){
+          if(state==='idle' || state==='done'){ startRound(); }
+          else if(state==='timing'){ finishTimeGuess(); }
         }
       }
+    });
 
-      // --- Syöte
-      overlay.addEventListener('pointerdown', (e) => { e.preventDefault(); handlePress(); }, { passive: false });
-      document.addEventListener('keydown', (e) => {
-        if (e.repeat) return;
-        if (e.code === 'Space' || e.code === 'Enter' || e.code === 'NumpadEnter') {
-          e.preventDefault();
-          handlePress();
-        }
-      });
+    btnReset.addEventListener('click', () => {
+      results = [];
+      best = 0;
+      saveBest();
+      updateStats();
+      msg.textContent = 'Nollattu. Klikkaa aloittaaksesi.';
+      sub.textContent = 'Sarja: 5 yritystä.';
+      state = 'idle';
+      setBg('var(--bg)');
+      targetEl?.remove(); targetEl=null;
+    });
 
-      // --- Napit
-      function renderSoundBtn() {
-        btnSound.textContent = (beepOn ? '🔊 Ääni päällä' : '🔇 Ääni pois');
-        btnSound.setAttribute('aria-pressed', String(beepOn));
+    // --- Init
+    (function init(){
+      // peli URL-paramista (esim. ?game=time-guess)
+      const p = new URLSearchParams(location.search).get('game');
+      if(p && ['reaction','tap-target','time-guess'].includes(p)){
+        sel.value = p;
       }
-      btnSound.addEventListener('click', () => { beepOn = !beepOn; localStorage.setItem('rt_beep', JSON.stringify(beepOn)); renderSoundBtn(); });
-
-      btnShare.addEventListener('click', async () => {
-        const last = blockResults.at(-1);
-        const text = last ? `Reaktioaikani: ${fmt(last)} — testaa oma täällä!` : 'Testaa reaktioaikasi!';
-        try {
-          if (navigator.share) {
-            await navigator.share({ title: 'Reaktioaikatesti', text, url: location.href });
-          } else {
-            await navigator.clipboard.writeText(`${text} ${location.href}`);
-            toast('Kopioitu leikepöydälle');
-          }
-        } catch {}
-      });
-
-      btnReset.addEventListener('click', () => {
-        blockResults = [];
-        best = 0;
-        seriesComplete = false;
-        saveStats();
-        updateStatsDisplay();
-        toast('Tilastot nollattu');
-      });
-
-      // Tiny toast
-      let toastEl = null; let toastTimer = null;
-      function toast(text) {
-        if (!toastEl) {
-          toastEl = document.createElement('div');
-          toastEl.style.cssText = 'position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:rgba(15,23,42,.9);color:#e5e7eb;padding:10px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.15);font-weight:700;z-index:9999;';
-          document.body.appendChild(toastEl);
-        }
-        toastEl.textContent = text;
-        toastEl.style.opacity = '1';
-        clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => { toastEl.style.opacity = '0'; }, 1200);
-      }
-
-      // Init
-      renderSoundBtn();
-      updateStatsDisplay();
-      setState('idle');
-      // Focus for keyboard use
-      setTimeout(() => { try { document.body.focus(); } catch {} }, 0);
+      setGame(sel.value);
     })();
   </script>
 </body>
