@@ -10,22 +10,22 @@
   <meta name="google-site-verification" content="i7sBGgDOuck7BBuLbRntRqmrJY8sXkDfXSTVHi5Qzlo" />
   <style>
     :root {
-      --bg-idle: #0f172a;    /* slate-900 */
-      --bg-wait: #ef4444;    /* red-500 */
-      --bg-go:   #22c55e;    /* green-500 */
-      --bg-early:#f59e0b;    /* amber-500 */
-      --text:    #e5e7eb;    /* gray-200 */
-      --muted:   #94a3b8;    /* slate-400 */
+      --bg-idle: #0f172a;
+      --bg-wait: #ef4444;
+      --bg-go:   #22c55e;
+      --bg-early:#f59e0b;
+      --text:    #e5e7eb;
+      --muted:   #94a3b8;
       --card:    rgba(15, 23, 42, 0.6);
-      --btn:     #1f2937;    /* gray-800 */
-      --btnh:    #374151;    /* gray-700 */
-      --accent:  #38bdf8;    /* sky-400 */
+      --btn:     #1f2937;
+      --btnh:    #374151;
+      --accent:  #38bdf8;
     }
     * { box-sizing: border-box; }
     html, body { height: 100%; }
     body {
       margin: 0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
       color: var(--text);
       display: grid;
       place-items: center;
@@ -40,137 +40,58 @@
     body.go      { background: var(--bg-go); }
     body.early   { background: var(--bg-early); }
 
-    #app {
-      width: min(920px, 92vw);
-      display: grid;
-      gap: 18px;
-      text-align: center;
-      padding: 24px;
-    }
-    .title { font-size: clamp(28px, 5vw, 44px); font-weight: 800; letter-spacing: 0.3px; }
+    #app { width: min(960px, 95vw); display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 24px; }
+    .title { font-size: clamp(28px, 5vw, 44px); font-weight: 800; }
     .message { font-size: clamp(22px, 4vw, 34px); font-weight: 700; }
     .subtext { font-size: clamp(14px, 2.4vw, 18px); color: var(--muted); }
-
     .row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; }
-    .chip { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); padding: 10px 14px; border-radius: 999px; font-weight: 600; }
-
-    .panel {
-      background: var(--card);
-      border: 1px solid rgba(255,255,255,0.12);
-      backdrop-filter: blur(6px);
-      padding: 16px 18px;
-      border-radius: 16px;
-    }
-
-    .grid {
-      display: grid; gap: 10px;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    }
-
-    button, .btn-like {
-      appearance: none; border: none; cursor: pointer; color: var(--text); font-weight: 700;
-      background: var(--btn); padding: 10px 14px; border-radius: 12px; transition: transform 80ms ease, background 120ms;
-    }
-    button:hover { background: var(--btnh); }
-    button:active { transform: translateY(1px) scale(0.99); }
-    .btn-accent { background: var(--accent); color: #031525; }
-    .btn-ghost { background: transparent; border: 1px dashed rgba(255,255,255,0.24); }
-
-    .stat {
-      font-size: clamp(22px, 4vw, 30px); font-weight: 800;
-    }
+    .panel { background: var(--card); border: 1px solid rgba(255,255,255,0.12); backdrop-filter: blur(6px); padding: 16px 18px; border-radius: 16px; }
+    .stat { font-size: clamp(22px, 4vw, 30px); font-weight: 800; }
     .small { font-size: 12px; letter-spacing: 0.4px; text-transform: uppercase; color: var(--muted); }
-
     footer { opacity: 0.9; font-size: 12px; color: var(--muted); text-align: center; }
     a { color: var(--accent); text-decoration: none; }
     a:hover { text-decoration: underline; }
-
-    .kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-weight: 700; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.18); }
-
-    /* Big click area overlay for instructions */
+    .kbd { font-family: ui-monospace; font-weight: 700; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.18); }
     #overlay { position: fixed; inset: 0; }
-      /* FAQ (kollapsoituvat tietolaatikot) */
+    .spacer { height: clamp(160px, 34vh, 420px); width: 100%; pointer-events: none; }
+    /* FAQ */
     details.faq { text-align: left; background: var(--card); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 12px 14px; }
     details.faq + details.faq { margin-top: 10px; }
     details.faq[open] { border-color: rgba(255,255,255,0.2); }
     details.faq summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 800; }
     details.faq summary::-webkit-details-marker { display: none; }
-    .faq-icon { width: 28px; height: 28px; display: inline-grid; place-items: center; border-radius: 8px; background: rgba(56,189,248,0.18); border: 1px solid rgba(56,189,248,0.35); font-size: 16px; }
     .faq-content { color: var(--muted); margin-top: 8px; line-height: 1.5; }
   </style>
 </head>
 <body tabindex="0" aria-live="polite">
   <div id="overlay" aria-hidden="true"></div>
-
   <main id="app" role="main">
     <div class="title">Reaktioaikatesti</div>
     <div id="message" class="message">Klikkaa tai paina <span class="kbd">välilyönti</span> aloittaaksesi</div>
     <div id="sub" class="subtext">Kun tausta vaihtuu <strong>vihreäksi</strong>, klikkaa niin nopeasti kuin pystyt.</div>
-
-    <div class="grid">
-      <section class="panel" aria-label="Tulos & tilastot">
-        <div class="row" style="justify-content: space-between; gap: 16px;">
-          <div>
-            <div class="small">Viimeisin</div>
-            <div id="last" class="stat">–</div>
-          </div>
-          <div>
-            <div class="small">Paras</div>
-            <div id="best" class="stat">–</div>
-          </div>
-          <div>
-            <div class="small">Keskiarvo (5)</div>
-            <div id="avg" class="stat">–</div>
-          </div>
-        </div>
-      </section>
-
-      <section class="panel" aria-label="Asetukset & toiminnot">
-        <div class="row">
-          <button id="toggle-sound" type="button" aria-pressed="true">🔊 Ääni päällä</button>
-          <button id="share" type="button">📤 Jaa tulos</button>
-          <button id="reset" type="button" class="btn-ghost">♻️ Nollaa tilastot</button>
-        </div>
-        <div class="subtext" style="margin-top:8px">Vinkki: voit käyttää myös <span class="kbd">Enter</span>- tai <span class="kbd">välilyönti</span>-näppäintä.</div>
-      </section>
-
-      <section class="panel" aria-label="Historia">
-        <div class="small">Viimeiset tulokset</div>
-        <div id="history" class="subtext">—</div>
-      </section>
-    </div>
-
-    <!-- FAQ / tieto-osiot: yksinkertainen ja piilotettuna kunnes avataan -->
-    <section class="panel" aria-label="Tietoa reaktioajasta" style="text-align:left">
-      <div class="small" style="margin-bottom:8px">Lisätietoa</div>
-
-      <details class="faq">
-        <summary><span class="faq-icon">❓</span> Mikä on hyvä reaktioaika?</summary>
-        <div class="faq-content">
-          Keskimääräinen reaktioaika aikuisilla on noin <strong>250&nbsp;ms</strong>. Nuorilla ja paljon pelaavilla tulos on usein <strong>150–200&nbsp;ms</strong>. Alle 150&nbsp;ms on poikkeuksellisen hyvä. Iän myötä reaktio hidastuu (esim. 300–350&nbsp;ms yli 60‑vuotiailla).
-        </div>
-      </details>
-
-      <details class="faq">
-        <summary><span class="faq-icon">⚡</span> Miten parannan reaktioaikaa?</summary>
-        <div class="faq-content">
-          Toisto auttaa: tee lyhyitä, säännöllisiä harjoituksia (esim. tämä testi 3–5 kierrosta/päivä). Unen laatu, vireystila ja keskittyminen vaikuttavat selvästi. Silmä–käsi‑koordinaatiota kehittävät lajit (pöytätennis, rytmipelit) tukevat parantumista.
-        </div>
-      </details>
-
-      <details class="faq">
-        <summary><span class="faq-icon">🖥️</span> Vaikuttaako selain tai laite?</summary>
-        <div class="faq-content">
-          Pieni vaikutus voi olla. Mittaus käyttää selaimen <em>performance.now()</em>‑kelloa, mutta näytön virkistystaajuus ja laitteesi kuormitus voivat tuoda kymmenien millisekuntien eroja. Vertaa tuloksia samalla laitteella ja selaimella.
-        </div>
-      </details>
+    <div class="spacer" aria-hidden="true"></div>
+    <section id="results" class="panel">
+      <div class="row" style="justify-content: space-between; gap: 16px;">
+        <div><div class="small">Viimeisin</div><div id="last" class="stat">–</div></div>
+        <div><div class="small">Paras</div><div id="best" class="stat">–</div></div>
+        <div><div class="small">Keskiarvo (5)</div><div id="avg" class="stat">–</div></div>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button id="toggle-sound" type="button" aria-pressed="true">🔊 Ääni päällä</button>
+        <button id="share" type="button">📤 Jaa tulos</button>
+        <button id="reset" type="button" class="btn-ghost">♻️ Nollaa tilastot</button>
+      </div>
+      <div class="subtext" style="margin-top:8px">Vinkki: voit käyttää myös <span class="kbd">Enter</span>- tai <span class="kbd">välilyönti</span>-näppäintä.</div>
+      <div class="small" style="margin-top:12px">Viimeiset tulokset</div>
+      <div id="history" class="subtext">—</div>
     </section>
-
-    <footer>
-      Rakennettu ilman kirjastoja. © <span id="year"></span> • <a href="#" id="permalink">Pysyvä linkki tälle työkalulle</a>
-    </footer>
+    <section class="panel"><div class="small" style="margin-bottom:8px">Lisätietoa</div>
+      <details class="faq"><summary>❓ Mikä on hyvä reaktioaika?</summary><div class="faq-content">Keskimääräinen reaktioaika aikuisilla on noin 250 ms. Nuorilla ja pelaajilla usein 150–200 ms.</div></details>
+      <details class="faq"><summary>⚡ Miten parannan reaktioaikaa?</summary><div class="faq-content">Harjoittelu, uni ja keskittyminen vaikuttavat. Myös silmä–käsi‑koordinaatiota kehittävät lajit auttavat.</div></details>
+      <details class="faq"><summary>🖥️ Vaikuttaako selain tai laite?</summary><div class="faq-content">Kyllä, esim. näytön virkistystaajuus ja laitteen kuormitus voivat tuoda pieniä eroja.</div></details>
+    </section>
+    <footer>Rakennettu ilman kirjastoja. © <span id="year"></span> • <a href="#" id="permalink">Pysyvä linkki</a></footer>
   </main>
-
   <script>
     (function() {
       const $ = (id) => document.getElementById(id);
@@ -188,14 +109,19 @@
       const YEAR = $("year"); YEAR.textContent = new Date().getFullYear();
       const link = $("permalink"); link.addEventListener('click', e => { e.preventDefault(); navigator.clipboard.writeText(location.href).then(() => toast('Linkki kopioitu')); });
 
-      let state = 'idle';
+      // --- Pelilogiikan tilat
+      const TRIALS = 5;                 // yritysten määrä per sarja
+      let state = 'idle';               // 'idle' | 'wait' | 'go' | 'early' | 'result'
+      let seriesComplete = false;       // tosi kun 5/5 suoritettu
       let timer = null;
       let startTs = 0;
-      let results = JSON.parse(localStorage.getItem('rt_results') || '[]');
+
+      // Tulokset: tämän sarjan tulokset (1..5), pysyvästi tallennetaan vain paras
+      let blockResults = [];
       let best = Number(localStorage.getItem('rt_best') || '0');
       let beepOn = JSON.parse(localStorage.getItem('rt_beep') || 'true');
 
-      // WebAudio beep when GO
+      // --- Ääni (WebAudio) kun GO
       let ctx = null;
       function beep() {
         if (!beepOn) return;
@@ -214,19 +140,17 @@
         } catch {}
       }
 
+      // --- Apurit
       function fmt(ms) { return Math.round(ms) + ' ms'; }
-      function averageLast(n=5) { const arr = results.slice(-n); if (!arr.length) return 0; return arr.reduce((a,b)=>a+b,0)/arr.length; }
-      function updateStatsDisplay(lastVal = null) {
-        lastEl.textContent = lastVal ? fmt(lastVal) : (results.length ? fmt(results[results.length-1]) : '–');
-        bestEl.textContent = best ? fmt(best) : '–';
-        const avg = averageLast();
-        avgEl.textContent = avg ? fmt(avg) : '–';
-        histEl.textContent = results.length ? results.slice(-10).map(v=>fmt(v)).join(' · ') : '—';
-      }
+      function average(arr){ if(!arr.length) return 0; return arr.reduce((a,b)=>a+b,0)/arr.length; }
+      function saveStats() { localStorage.setItem('rt_best', String(best)); }
 
-      function saveStats() {
-        localStorage.setItem('rt_results', JSON.stringify(results));
-        localStorage.setItem('rt_best', String(best));
+      function updateStatsDisplay(lastVal = null) {
+        lastEl.textContent = lastVal ? fmt(lastVal) : (blockResults.length ? fmt(blockResults[blockResults.length-1]) : '–');
+        bestEl.textContent = best ? fmt(best) : '–';
+        const avg = average(blockResults);
+        avgEl.textContent = avg ? fmt(avg) : '–';
+        histEl.textContent = blockResults.length ? blockResults.map(v=>fmt(v)).join(' · ') : '—';
       }
 
       function setState(next) {
@@ -235,7 +159,7 @@
         switch(next) {
           case 'idle':
             msg.innerHTML = 'Klikkaa tai paina <span class="kbd">välilyönti</span> aloittaaksesi';
-            sub.innerHTML = 'Kun tausta vaihtuu <strong>vihreäksi</strong>, klikkaa niin nopeasti kuin pystyt.';
+            sub.innerHTML = `Kun tausta vaihtuu <strong>vihreäksi</strong>, klikkaa niin nopeasti kuin pystyt. Sarjassa ${TRIALS} yritystä.`;
             break;
           case 'wait':
             body.classList.add('wait');
@@ -253,8 +177,11 @@
             sub.textContent = 'Klikkaa yrittääksesi uudelleen';
             break;
           case 'result':
-            msg.textContent = 'Hyvä! Klikkaa yrittääksesi uudelleen';
-            sub.textContent = 'Kokeile parantaa tulostasi';
+            // viesti asetetaan finishRoundissa jos sarja valmis
+            if (!seriesComplete) {
+              msg.textContent = 'Hyvä! Klikkaa yrittääksesi uudelleen';
+              sub.textContent = 'Kokeile parantaa tulostasi';
+            }
             break;
         }
       }
@@ -262,7 +189,8 @@
       function startRound() {
         if (timer) clearTimeout(timer);
         setState('wait');
-        const delay = Math.floor(1000 + Math.random()*3000); // 1000–4000 ms
+        // Lisää pari sekuntia viivettä ja tee vaikeammaksi arvata
+        const delay = Math.floor(2500 + Math.random()*3500); // 2500–6000 ms
         timer = setTimeout(() => {
           startTs = performance.now();
           setState('go');
@@ -277,14 +205,27 @@
 
       function finishRound() {
         const rt = performance.now() - startTs;
-        results.push(rt);
+        blockResults.push(rt);
         if (!best || rt < best) best = rt;
         saveStats();
         updateStatsDisplay(rt);
+        if (blockResults.length >= TRIALS) {
+          seriesComplete = true;
+          msg.textContent = `Sarja valmis! Keskiarvo: ${fmt(average(blockResults))}`;
+          sub.textContent = 'Klikkaa aloittaaksesi uuden 5 yrityksen sarjan';
+        }
         setState('result');
       }
 
       function handlePress() {
+        // Jos sarja valmis, seuraava klikkaus nollaa ja käynnistää uuden sarjan
+        if (seriesComplete && (state==='result' || state==='idle' || state==='early')) {
+          blockResults = [];
+          seriesComplete = false;
+          updateStatsDisplay();
+          startRound();
+          return;
+        }
         switch(state) {
           case 'idle':
           case 'result':
@@ -300,7 +241,7 @@
         }
       }
 
-      // Input handlers
+      // --- Syöte
       overlay.addEventListener('pointerdown', (e) => { e.preventDefault(); handlePress(); }, { passive: false });
       document.addEventListener('keydown', (e) => {
         if (e.repeat) return;
@@ -310,7 +251,7 @@
         }
       });
 
-      // Buttons
+      // --- Napit
       function renderSoundBtn() {
         btnSound.textContent = (beepOn ? '🔊 Ääni päällä' : '🔇 Ääni pois');
         btnSound.setAttribute('aria-pressed', String(beepOn));
@@ -318,7 +259,7 @@
       btnSound.addEventListener('click', () => { beepOn = !beepOn; localStorage.setItem('rt_beep', JSON.stringify(beepOn)); renderSoundBtn(); });
 
       btnShare.addEventListener('click', async () => {
-        const last = results.at(-1);
+        const last = blockResults.at(-1);
         const text = last ? `Reaktioaikani: ${fmt(last)} — testaa oma täällä!` : 'Testaa reaktioaikasi!';
         try {
           if (navigator.share) {
@@ -331,8 +272,9 @@
       });
 
       btnReset.addEventListener('click', () => {
-        results = [];
+        blockResults = [];
         best = 0;
+        seriesComplete = false;
         saveStats();
         updateStatsDisplay();
         toast('Tilastot nollattu');
