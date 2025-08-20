@@ -89,6 +89,14 @@
 
     /* Big click area overlay for instructions */
     #overlay { position: fixed; inset: 0; }
+      /* FAQ (kollapsoituvat tietolaatikot) */
+    details.faq { text-align: left; background: var(--card); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 12px 14px; }
+    details.faq + details.faq { margin-top: 10px; }
+    details.faq[open] { border-color: rgba(255,255,255,0.2); }
+    details.faq summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 800; }
+    details.faq summary::-webkit-details-marker { display: none; }
+    .faq-icon { width: 28px; height: 28px; display: inline-grid; place-items: center; border-radius: 8px; background: rgba(56,189,248,0.18); border: 1px solid rgba(56,189,248,0.35); font-size: 16px; }
+    .faq-content { color: var(--muted); margin-top: 8px; line-height: 1.5; }
   </style>
 </head>
 <body tabindex="0" aria-live="polite">
@@ -131,6 +139,32 @@
         <div id="history" class="subtext">—</div>
       </section>
     </div>
+
+    <!-- FAQ / tieto-osiot: yksinkertainen ja piilotettuna kunnes avataan -->
+    <section class="panel" aria-label="Tietoa reaktioajasta" style="text-align:left">
+      <div class="small" style="margin-bottom:8px">Lisätietoa</div>
+
+      <details class="faq">
+        <summary><span class="faq-icon">❓</span> Mikä on hyvä reaktioaika?</summary>
+        <div class="faq-content">
+          Keskimääräinen reaktioaika aikuisilla on noin <strong>250&nbsp;ms</strong>. Nuorilla ja paljon pelaavilla tulos on usein <strong>150–200&nbsp;ms</strong>. Alle 150&nbsp;ms on poikkeuksellisen hyvä. Iän myötä reaktio hidastuu (esim. 300–350&nbsp;ms yli 60‑vuotiailla).
+        </div>
+      </details>
+
+      <details class="faq">
+        <summary><span class="faq-icon">⚡</span> Miten parannan reaktioaikaa?</summary>
+        <div class="faq-content">
+          Toisto auttaa: tee lyhyitä, säännöllisiä harjoituksia (esim. tämä testi 3–5 kierrosta/päivä). Unen laatu, vireystila ja keskittyminen vaikuttavat selvästi. Silmä–käsi‑koordinaatiota kehittävät lajit (pöytätennis, rytmipelit) tukevat parantumista.
+        </div>
+      </details>
+
+      <details class="faq">
+        <summary><span class="faq-icon">🖥️</span> Vaikuttaako selain tai laite?</summary>
+        <div class="faq-content">
+          Pieni vaikutus voi olla. Mittaus käyttää selaimen <em>performance.now()</em>‑kelloa, mutta näytön virkistystaajuus ja laitteesi kuormitus voivat tuoda kymmenien millisekuntien eroja. Vertaa tuloksia samalla laitteella ja selaimella.
+        </div>
+      </details>
+    </section>
 
     <footer>
       Rakennettu ilman kirjastoja. © <span id="year"></span> • <a href="#" id="permalink">Pysyvä linkki tälle työkalulle</a>
