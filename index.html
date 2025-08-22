@@ -1,271 +1,552 @@
 <!DOCTYPE html>
 <html lang="fi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Reaktioaika.fi – Valitse peli</title>
-  <meta name="description" content="Testaa reaktioaikasi kahdella pelillä: vihreä tausta ja aikaarvio 30 s. 5 yrityksen sarjat, keskiarvo ja paras tulos." />
-  <style>
-    :root{
-      --bg: #0f172a;      /* tausta */
-      --bg-wait:#ef4444;  /* punainen */
-      --bg-go:#22c55e;    /* vihreä */
-      --text:#e5e7eb;
-      --sub:#94a3b8;
-      --panel: rgba(255,255,255,.06);
-      --border: rgba(255,255,255,.12);
-      --accent:#38bdf8;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; font-family:system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
-      background:var(--bg); color:var(--text); display:flex; flex-direction:column; min-height:100vh;
-      transition:background 140ms ease-in-out;
-      user-select:none; -webkit-tap-highlight-color:transparent; touch-action:manipulation;
-    }
-    header{padding:16px; background:#1e293b; display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:center; text-align:center}
-    header h1{margin:0; font-size:20px; font-weight:800}
-    header .select-wrap{display:flex; gap:8px; align-items:center}
-    select{padding:8px 12px; border-radius:10px; border:1px solid var(--border); background:#0b1220; color:var(--text)}
-    main{flex:1; display:flex; flex-direction:column; align-items:center; gap:16px; padding:18px; text-align:center}
-    .title{font-size:clamp(22px,3.8vw,32px); font-weight:800}
-    .sub {color:var(--sub)}
-    .kbd{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace; font-weight:700; background:rgba(255,255,255,.08); padding:2px 6px; border-radius:6px; border:1px solid var(--border)}
-    .spacer{height:clamp(160px,34vh,440px); width:100%}
-    .panel{width:min(960px,95vw); background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:14px}
-    .row{display:flex; flex-wrap:wrap; gap:14px; align-items:center; justify-content:space-between}
-    .stat{font-size:clamp(22px,4vw,28px); font-weight:800}
-    .small{font-size:12px; color:var(--sub); text-transform:uppercase; letter-spacing:.3px}
-    button{appearance:none; border:none; border-radius:10px; padding:10px 14px; cursor:pointer; font-weight:700; color:var(--text); background:#1f2937}
-    button:hover{background:#374151}
-    footer{padding:14px; color:var(--sub); text-align:center; font-size:12px}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sokkosidokset – Päivän challenge</title>
+<meta name="description" content="Sokkosidokset: sosiaalinen linkkipeli. Pelaa bottien kanssa päivän haaste – paljastus lopussa!" />
+<style>
+  :root{
+    --bg:#0f172a; --panel:#121b30; --border:#27324a; --text:#e5e7eb; --muted:#93a4bf;
+    --acc:#38bdf8; --good:#22c55e; --warn:#f59e0b; --bad:#ef4444; --chip:#1b2540;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font-family:system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    background:var(--bg); color:var(--text); display:flex; min-height:100vh; flex-direction:column;
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; user-select:none;
+  }
+  header{background:#13203a;border-bottom:1px solid var(--border);padding:14px}
+  .wrap{width:min(1100px,94vw); margin:0 auto}
+  h1{margin:0;font-size:20px;font-weight:800}
+  .sub{color:var(--muted);font-size:13px}
+  .banner{margin-top:6px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .badge{background:#0b162d;border:1px solid var(--border);padding:6px 10px;border-radius:999px;font-weight:700}
+
+  main{flex:1;display:flex;align-items:center;justify-content:center;padding:18px}
+  .card{width:min(1100px,94vw);background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:18px}
+  .title{font-size:clamp(22px,4vw,28px);font-weight:800}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .grid{display:grid;gap:10px}
+  .grid.players{grid-template-columns: repeat(auto-fit,minmax(160px,1fr));}
+  .chip{background:var(--chip);border:1px solid var(--border);padding:10px;border-radius:12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+  .chip[aria-pressed="true"]{outline:2px solid var(--acc)}
+  .muted{color:var(--muted)}
+  .kbd{font-family:ui-monospace, Menlo, Consolas, monospace; background:#0b162d; border:1px solid var(--border); padding:2px 6px; border-radius:6px; font-weight:700}
+  button{appearance:none;border:none;background:#1e293b;color:var(--text);padding:10px 14px;border-radius:12px;font-weight:800;cursor:pointer}
+  button.acc{background:var(--acc);color:#04121e}
+  button.ghost{background:transparent;border:1px dashed var(--border)}
+  button:disabled{opacity:.6;cursor:not-allowed}
+  .progress{height:8px;background:#0b162d;border:1px solid var(--border);border-radius:999px;overflow:hidden}
+  .bar{height:100%;width:0;background:linear-gradient(90deg,#22c55e,#38bdf8)}
+  .hint{font-size:13px;color:var(--muted)}
+  .footer{padding:12px;text-align:center;color:var(--muted);font-size:12px}
+
+  /* Reveal */
+  .reveal-wrap{display:grid;grid-template-columns: 1.2fr .8fr; gap:14px}
+  svg{width:100%;height:580px;background:#0b162d;border:1px solid var(--border);border-radius:12px}
+  .legend{background:#0b162d;border:1px solid var(--border);border-radius:12px;padding:12px}
+  .pill{display:inline-block;background:#0c1d36;border:1px solid var(--border);padding:6px 10px;border-radius:999px;margin:4px 6px 0 0}
+  .title2{font-size:18px;font-weight:800;margin:0 0 6px 0}
+  .winner{color:var(--good);font-weight:800}
+  .share{display:flex;gap:10px;flex-wrap:wrap}
+  .fadein{opacity:0;animation:fade 620ms ease forwards}
+  @keyframes fade{to{opacity:1}}
+  .line{stroke:#60a5fa; stroke-opacity:.85; stroke-linecap:round}
+  .node{fill:#e5e7eb}
+  .label{font-size:12px; fill:#cdd7ee; dominant-baseline:middle; text-anchor:middle}
+</style>
 </head>
 <body>
-  <header>
-    <h1>Reaktioaika.fi – Pelit</h1>
-    <div class="select-wrap">
-      <label for="game-select">Valitse peli:</label>
-      <select id="game-select">
-        <option value="reaction">Reaktiotesti (vihreä tausta)</option>
-        <option value="time-guess">Aikaarvio 30 s</option>
-      </select>
+<header>
+  <div class="wrap">
+    <h1>Sokkosidokset – Päivän challenge</h1>
+    <div class="banner">
+      <span class="badge" id="dayBadge">Tänään: —</span>
+      <span class="badge" id="streakBadge">🔥 Streak 0</span>
+      <span class="sub">5–7 kierrosta, ei välituloksia – kaikki paljastuu lopussa.</span>
     </div>
-  </header>
+  </div>
+</header>
 
-  <main>
-    <div class="title" id="message">Valitse peli ja aloita!</div>
-    <div class="sub" id="sub">Klikkaa tai paina <span class="kbd">välilyönti</span> aloittaaksesi.</div>
+<main>
+  <div class="card" id="screen"></div>
+</main>
 
-    <!-- Iso klikkausalue – peli saa tilaa -->
-    <div class="spacer" aria-hidden="true"></div>
+<div class="footer">© <span id="year"></span> Reaktioaika.fi • Demo</div>
 
-    <!-- Tulokset -->
-    <section class="panel" aria-label="Tulos & tilastot">
-      <div class="row">
-        <div><div class="small">Viimeisin</div><div id="last" class="stat">–</div></div>
-        <div><div class="small">Paras</div><div id="best" class="stat">–</div></div>
-        <div><div class="small">Keskiarvo (5)</div><div id="avg" class="stat">–</div></div>
+<script>
+(() => {
+  // ---------- Utils / seed ----------
+  const YEAR = document.getElementById('year'); YEAR.textContent = new Date().getFullYear();
+  const dayKey = () => new Date().toISOString().slice(0,10); // YYYY-MM-DD
+  document.getElementById('dayBadge').textContent = `Tänään: ${dayKey()}`;
+  const SECRET = "sokkosidokset-v1"; // vaihda kausittain
+
+  function fnv1a(str){
+    let h=0x811c9dc5;
+    for(let i=0;i<str.length;i++){ h ^= str.charCodeAt(i); h += (h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24); }
+    return h>>>0;
+  }
+  function rng(seedStr){
+    let s = fnv1a(seedStr) || 123456789;
+    return function(){
+      // xorshift32
+      s ^= s<<13; s ^= s>>>17; s ^= s<<5; s >>>=0;
+      return (s % 1e9)/1e9;
+    }
+  }
+  function pick(arr, r){ return arr[Math.floor((r??Math.random())*arr.length)] }
+  function shuffle(arr, rnd){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(rnd()* (i+1)); [arr[i],arr[j]]=[arr[j],arr[i]] } return arr }
+
+  // ---------- State ----------
+  const screen = document.getElementById('screen');
+  const DAILY_RND = rng(dayKey()+SECRET);
+  let playerName = "";
+  let players = []; // {id,name,isHuman}
+  let rounds = [];  // generated questions
+  let current = -1;
+  let answers = {}; // per round: { playerId: {choices:[ids]} }
+  let timerId = null; let timeLeft = 0;
+
+  const BOT_NAMES = [
+    "Nova","Orion","Vega","Kide","Saga","Myrsky","Aava","Pixel","Zen","Echo","Flux","Lyra","Kuu","Bolt","Halo"
+  ];
+
+  // ---------- Question sets ----------
+  const Q_PAIR = [
+    "Ketkä perustaisivat parhaan startupin?",
+    "Kenen kahden yhteistyö olisi yllättävän tehokasta?",
+    "Kaksikko, joka voittaisi Amazing Race ‑kilpailun?",
+    "Ketkä tekisivät viihdyttävimmän podcastin?"
+  ];
+  const Q_SINGLE = [
+    "Kuka johtaisi parhaiten salaseuraa?",
+    "Kuka pysyy rauhallisimpana paineen alla?",
+    "Kenen pokerinaama on vahvin?",
+    "Kuka vakuuttaisi tuomarit pitchissä?"
+  ];
+  const Q_GROUP3 = [
+    "Ketkä olisivat täydellinen tiimi maailmanpelastukseen?",
+    "Kolmikko, joka voittaisi tietovisan?",
+    "Ketkä eksyisivät mutta selviäisivät nauraen?",
+    "Paras tiimi hackathoniin?"
+  ];
+
+  // ---------- Flow screens ----------
+  renderIntro();
+
+  function renderIntro(){
+    screen.innerHTML = `
+      <div class="grid" style="gap:12px; text-align:center">
+        <div class="title">Päivän challenge (soolo)</div>
+        <div class="sub">Liity nimimerkillä ja pelaa 6 kierrosta bottien kanssa. Mitään tuloksia ei näytetä kesken pelin – verkko paljastuu <em>lopussa</em>.</div>
+        <div class="grid" style="grid-template-columns:1fr; max-width:520px; margin:0 auto; gap:10px">
+          <input id="nick" placeholder="Nimimerkki" maxlength="16" style="padding:12px;border-radius:12px;border:1px solid var(--border);background:#0b162d;color:var(--text);text-align:center;font-weight:800" />
+          <button id="start" class="acc">Aloita päivän haaste</button>
+          <div class="hint">Vinkki: valinnat lukitaan, välituloksia ei näy. Paljastuksessa näet koko verkon, pisteet ja tittelit.</div>
+        </div>
       </div>
-      <div class="row" style="margin-top:10px;">
-        <button id="reset">♻️ Nollaa</button>
+    `;
+    document.getElementById('start').onclick = () => {
+      const v = (document.getElementById('nick').value || "").trim();
+      playerName = v || "Sinä";
+      initGame();
+      nextRound();
+    };
+  }
+
+  function initGame(){
+    // Players (1 human + 7 bots)
+    const available = BOT_NAMES.slice();
+    const botRnd = rng(dayKey()+SECRET+"-bots");
+    shuffle(available, botRnd);
+    players = [{id:"p0",name:playerName,isHuman:true}];
+    for(let i=1;i<=7;i++){ players.push({id:"p"+i, name:available[i-1], isHuman:false}); }
+
+    // Rounds: 6 deterministic
+    const rr = rng(dayKey()+SECRET+"-rounds");
+    const pool = [];
+    pool.push({type:"pair", pick:2, text:pick(Q_PAIR, rr())});
+    pool.push({type:"single", pick:1, text:pick(Q_SINGLE, rr())});
+    pool.push({type:"group3", pick:3, text:pick(Q_GROUP3, rr())});
+    pool.push({type:"pair", pick:2, text:pick(Q_PAIR, rr())});
+    pool.push({type:"single", pick:1, text:pick(Q_SINGLE, rr())});
+    // 1 salainen kierros (paljastuu vain lopussa)
+    pool.push({type: rr()>0.5?"pair":"single", pick: rr()>0.5?2:1, text: rr()>0.5?pick(Q_PAIR, rr()):pick(Q_SINGLE, rr()), secret:true});
+    rounds = pool;
+    answers = {};
+    updateStreak(false); // just show current streak
+  }
+
+  function nextRound(){
+    current++;
+    if(current >= rounds.length){ revealAll(); return; }
+    const r = rounds[current];
+    renderRound(r, current+1, rounds.length);
+    // timer
+    startTimer(55, (left) => {
+      // progress UI upd handled in startTimer
+    }, () => {
+      // auto lock: if not enough selections, bots still answer; human answer empty -> counts (0 picks)
+      finishRound();
+    });
+  }
+
+  function renderRound(r, idx, total){
+    const you = players[0];
+    const others = players.slice(1);
+    const mustPick = r.type==="pair"?2 : r.type==="group3"?3 : 1;
+
+    screen.innerHTML = `
+      <div class="grid" style="gap:14px">
+        <div class="row" style="justify-content:space-between">
+          <div class="title">Kierros ${idx}/${total}</div>
+          <div class="row">
+            <div class="hint">Aikaraja</div>
+            <div class="progress" style="width:180px"><div class="bar" id="bar"></div></div>
+          </div>
+        </div>
+        <div class="grid" style="gap:6px">
+          <div class="sub">${r.secret?'<span class="badge">Salainen kierros</span> ':''}${r.text}</div>
+          <div class="hint">Valitse <strong>${mustPick}</strong> ${r.type==="pair"?"henkilöä (pari)":"henkilö(ä)"}. Et voi valita itseäsi.</div>
+        </div>
+        <div class="grid players" id="pickArea"></div>
+        <div class="row" style="justify-content:space-between; margin-top:6px">
+          <div class="hint" id="selHint">Valintoja: 0 / ${mustPick}</div>
+          <div class="row">
+            <button class="ghost" id="clearBtn">Tyhjennä</button>
+            <button class="acc" id="lockBtn" disabled>Lukitse vastaus</button>
+          </div>
+        </div>
       </div>
-      <div class="small" style="margin-top:10px;">Viimeiset tulokset</div>
-      <div id="history" class="sub">—</div>
-    </section>
-  </main>
+    `;
 
-  <footer>© <span id="year"></span> Reaktioaika.fi</footer>
-
-  <script>
-    // --- Perusviitteet
-    const YEAR = document.getElementById('year'); YEAR.textContent = new Date().getFullYear();
-    const sel = document.getElementById('game-select');
-    const msg = document.getElementById('message');
-    const sub = document.getElementById('sub');
-    const lastEl = document.getElementById('last');
-    const bestEl = document.getElementById('best');
-    const avgEl  = document.getElementById('avg');
-    const histEl = document.getElementById('history');
-    const btnReset = document.getElementById('reset');
-
-    // --- Peli-tila
-    const TRIALS = 5;
-    let game = 'reaction';
-    let state = 'idle'; // 'idle' | 'wait' | 'go' | 'timing' | 'done' | 'early'
-    let results = [];   // kuluvan sarjan 1..5
-    let best = 0;       // pienin reaktio / pienin virhe (pelikohtainen)
-    let startTs = 0;
-    let timer = null;
-
-    // --- Formatterit
-    const fmtMs = (ms) => Math.round(ms) + ' ms';
-    const fmtSec = (ms) => (ms/1000).toFixed(2).replace('.', ',') + ' s'; // 2,35 s
-    const avg = (arr) => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;
-
-    const saveBest = () => localStorage.setItem('best_'+game, String(best));
-    const loadBest = () => Number(localStorage.getItem('best_'+game) || '0');
-    const setBg = (c) => document.body.style.background = c || 'var(--bg)';
-
-    function updateStats(lastVal=null){
-      if (game === 'time-guess') {
-        const show = (v) => fmtSec(v);
-        lastEl.textContent = lastVal!=null ? show(lastVal) : (results.length ? show(results.at(-1)) : '–');
-        bestEl.textContent = best ? show(best) : '–';
-        const a = avg(results);
-        avgEl.textContent = results.length ? show(a) : '–';
-        histEl.textContent = results.length ? results.map(show).join(' · ') : '—';
-      } else {
-        lastEl.textContent = lastVal!=null ? fmtMs(lastVal) : (results.length?fmtMs(results.at(-1)):'–');
-        bestEl.textContent = best ? fmtMs(best) : '–';
-        const a = avg(results);
-        avgEl.textContent = results.length ? fmtMs(a) : '–';
-        histEl.textContent = results.length ? results.map(v=>fmtMs(v)).join(' · ') : '—';
-      }
+    const area = document.getElementById('pickArea');
+    const sel = new Set();
+    function renderChips(){
+      area.innerHTML = others.map(p => {
+        const pressed = sel.has(p.id) ? 'aria-pressed="true"' : '';
+        return `<div class="chip" data-id="${p.id}" ${pressed}><span>${p.name}</span><span class="muted">ID ${p.id}</span></div>`;
+      }).join('');
+      document.querySelectorAll('.chip').forEach(el=>{
+        el.onclick = () => {
+          const id = el.getAttribute('data-id');
+          if (sel.has(id)) { sel.delete(id); }
+          else {
+            // cap by mustPick
+            if (sel.size >= mustPick) return;
+            sel.add(id);
+          }
+          document.getElementById('selHint').textContent = `Valintoja: ${sel.size} / ${mustPick}`;
+          document.getElementById('lockBtn').disabled = sel.size !== mustPick;
+          renderChips(); // reapply pressed
+        };
+      });
     }
+    renderChips();
 
-    function resetSeries(keepBest=true){
-      results = [];
-      if(!keepBest){ best = 0; saveBest(); }
-      updateStats();
-      state = 'idle';
-      setBg('var(--bg)');
-      if(game==='reaction'){
-        msg.textContent = 'Klikkaa aloittaaksesi – odota vihreää';
-        sub.innerHTML = 'Sarja: 5 yritystä. Älä klikkaa ennen vihreää.';
-      } else if(game==='time-guess'){
-        msg.textContent = 'Klikkaa aloittaaksesi aikaarvion (30 s)';
-        sub.innerHTML = 'Paina uudelleen, kun <strong>arvioit 30 sekunnin</strong> kuluneen.';
-      }
-    }
+    document.getElementById('clearBtn').onclick = () => {
+      sel.clear(); renderChips(); document.getElementById('selHint').textContent = `Valintoja: 0 / ${mustPick}`;
+      document.getElementById('lockBtn').disabled = true;
+    };
+    document.getElementById('lockBtn').onclick = () => {
+      stopTimer();
+      // save human answer
+      if(!answers[current]) answers[current] = {};
+      answers[current][you.id] = { choices: Array.from(sel) };
+      // generate bot answers
+      botAnswerRound(r, current);
+      // intermission
+      intermission();
+    };
+  }
 
-    // --- Pelinvaihto
-    function setGame(id){
-      clearTimeout(timer); timer = null;
-      game = id;
-      best = loadBest();
-      resetSeries(true);
-    }
-    sel.addEventListener('change', () => setGame(sel.value));
+  function intermission(){
+    screen.innerHTML = `
+      <div class="grid" style="gap:12px; text-align:center">
+        <div class="title">Vastaus lukittu</div>
+        <div class="sub">Odotellaan muita… (spoilerit piilossa)</div>
+        <div class="row" style="justify-content:center">
+          <button class="acc" id="nextBtn">Seuraava kierros</button>
+        </div>
+      </div>
+    `;
+    document.getElementById('nextBtn').onclick = () => nextRound();
+  }
 
-    // --- Pelit
-    function startRound(){
-      if(game==='reaction'){
-        // Punainen odotus -> viive -> vihreä
-        state='wait';
-        msg.textContent='Odota vihreää…';
-        sub.textContent='Älä klikkaa vielä!';
-        setBg('var(--bg-wait)');
-        timer = setTimeout(()=>{
-          state='go';
-          startTs = performance.now();
-          setBg('var(--bg-go)');
-          msg.textContent='Nyt! Klikkaa!';
-          sub.textContent='Mittaa reaktioaikasi';
-        }, 2500 + Math.random()*3500); // 2500–6000 ms
-      }
-      else if(game==='time-guess'){
-        // Käynnistä aikamittaus ilman näkyvää kelloa
-        state='timing';
-        startTs = performance.now();
-        msg.textContent='Käynnissä… Klikkaa, kun 30 s on mielestäsi kulunut.';
-        sub.textContent='Vinkki: älä laske ääneen – luota tuntumaan.';
-        setBg('#0f172a');
-      }
-    }
+  function finishRound(){
+    // if player didn't lock, still record empty (counts 0)
+    if(!answers[current]) answers[current] = {};
+    if(!answers[current]["p0"]) answers[current]["p0"] = { choices: [] };
+    botAnswerRound(rounds[current], current);
+    intermission();
+  }
 
-    function tooSoon(){
-      clearTimeout(timer);
-      state='early';
-      msg.textContent='Liian aikaisin!';
-      sub.textContent='Klikkaa aloittaaksesi uuden kierroksen.';
-      setBg('var(--bg)');
-    }
+  function startTimer(seconds, onTick, onDone){
+    const bar = document.getElementById('bar');
+    timeLeft = seconds;
+    const total=seconds;
+    clearInterval(timerId);
+    timerId = setInterval(()=>{
+      timeLeft--;
+      const ratio = Math.max(0, (total-timeLeft)/total);
+      bar.style.width = (ratio*100)+"%";
+      onTick?.(timeLeft);
+      if(timeLeft<=0){ clearInterval(timerId); onDone?.(); }
+    }, 1000);
+  }
+  function stopTimer(){ clearInterval(timerId); }
 
-    function finishReaction(){
-      const rt = performance.now() - startTs;
-      results.push(rt);
-      if(!best || rt < best) { best = rt; saveBest(); }
-      updateStats(rt);
-      setBg('var(--bg)');
-      if(results.length>=TRIALS){
-        state='done';
-        msg.textContent = 'Sarja valmis! Keskiarvo: ' + fmtMs(avg(results));
-        sub.textContent = 'Klikkaa aloittaaksesi uuden 5 yrityksen sarjan.';
-      } else {
-        state='idle';
-        msg.textContent='Hyvä! Klikkaa jatkaaksesi';
-        sub.textContent='Yrittelyttääkö parempi tulos?';
-      }
-    }
-
-    function finishTimeGuess(){
-      const elapsed = performance.now() - startTs; // ms
-      const target = 30000; // 30 s
-      const error = Math.abs(elapsed - target);
-      results.push(error);
-      if(!best || error < best){ best = error; saveBest(); }
-      updateStats(error);
-      msg.textContent = `Arvioit: ${fmtSec(elapsed)} → virhe ${fmtSec(error)}`;
-      if(results.length>=TRIALS){
-        state='done';
-        sub.textContent = 'Sarja valmis! Keskivirhe: ' + fmtSec(avg(results));
-      } else {
-        state='idle';
-        sub.textContent = 'Klikkaa aloittaaksesi seuraavan arvion.';
-      }
-    }
-
-    // --- Syötteet
-    document.body.addEventListener('pointerdown', () => {
-      if(game==='reaction'){
-        if(state==='idle' || state==='done' || state==='early'){ startRound(); }
-        else if(state==='wait'){ tooSoon(); }
-        else if(state==='go'){ finishReaction(); }
-      }
-      else if(game==='time-guess'){
-        if(state==='idle' || state==='done'){ startRound(); }
-        else if(state==='timing'){ finishTimeGuess(); }
-      }
+  // ---------- Bot logic ----------
+  function botAnswerRound(r, idx){
+    const rr = rng(dayKey()+SECRET+"-r"+idx);
+    const others = players.map(p=>p.id);
+    // precompute "affinities" deterministic (same per day)
+    const aff = {};
+    players.forEach(a=>{
+      aff[a.id]={};
+      players.forEach(b=>{
+        aff[a.id][b.id] = a.id===b.id?0 : 0.2 + rr()*0.8; // 0.2–1.0
+      });
     });
 
-    document.addEventListener('keydown', (e) => {
-      if(e.repeat) return;
-      if(e.code==='Space' || e.code==='Enter' || e.code==='NumpadEnter'){
-        e.preventDefault();
-        if(game==='reaction'){
-          if(state==='idle' || state==='done' || state==='early'){ startRound(); }
-          else if(state==='wait'){ tooSoon(); }
-          else if(state==='go'){ finishReaction(); }
+    players.filter(p=>!p.isHuman).forEach(bot=>{
+      // choice pool excludes self
+      const pool = players.filter(x=>x.id!==bot.id).map(x=>x.id);
+      let choices=[];
+      if(r.type==="pair"){
+        // pick 2 with highest affinity sum (bias) + randomness
+        const cand = shuffle(pool.slice(), rr);
+        for(let i=0;i<cand.length;i++){
+          for(let j=i+1;j<cand.length;j++){
+            const a=cand[i], b=cand[j];
+            const score = aff[bot.id][a]+aff[bot.id][b] + rr()*0.5;
+            choices.push({pair:[a,b],score});
+          }
         }
-        else if(game==='time-guess'){
-          if(state==='idle' || state==='done'){ startRound(); }
-          else if(state==='timing'){ finishTimeGuess(); }
+        choices.sort((x,y)=>y.score-x.score);
+        const pick2 = choices[0]?.pair ?? [pool[0],pool[1]];
+        commit(bot.id, pick2);
+      } else if(r.type==="single"){
+        const scored = pool.map(id=>({id,score:aff[bot.id][id]+rr()*0.7}));
+        scored.sort((a,b)=>b.score-a.score);
+        commit(bot.id, [scored[0].id]);
+      } else if(r.type==="group3"){
+        const cand = shuffle(pool.slice(), rr);
+        // simple heuristic: top3 by affinity
+        const scored = cand.map(id=>({id,score:aff[bot.id][id]+rr()*0.5}));
+        scored.sort((a,b)=>b.score-a.score);
+        commit(bot.id, scored.slice(0,3).map(x=>x.id));
+      }
+    });
+
+    function commit(pid, ids){
+      if(!answers[idx]) answers[idx]={};
+      answers[idx][pid] = { choices: ids };
+    }
+  }
+
+  // ---------- Reveal ----------
+  function revealAll(){
+    // Compute graph weights
+    const id2idx = new Map(players.map((p,i)=>[p.id,i]));
+    const N = players.length;
+    const adj = Array.from({length:N},()=>Array(N).fill(0));
+    const mention = Array(N).fill(0);
+    const secretIndex = rounds.findIndex(r=>r.secret);
+
+    rounds.forEach((r,ri)=>{
+      const A = answers[ri] || {};
+      Object.entries(A).forEach(([pid,obj])=>{
+        const sel = obj.choices||[];
+        if(r.type==="pair" && sel.length===2){
+          const i=id2idx.get(sel[0]), j=id2idx.get(sel[1]);
+          if(i!=null && j!=null){ adj[i][j]+=1; adj[j][i]+=1; mention[i]+=1; mention[j]+=1; }
+        } else if(r.type==="single" && sel.length===1){
+          const i=id2idx.get(sel[0]); if(i!=null){ mention[i]+=1; }
+        } else if(r.type==="group3" && sel.length===3){
+          const [a,b,c]=sel.map(x=>id2idx.get(x));
+          if(a!=null&&b!=null){ adj[a][b]+=0.5; adj[b][a]+=0.5; }
+          if(a!=null&&c!=null){ adj[a][c]+=0.5; adj[c][a]+=0.5; }
+          if(b!=null&&c!=null){ adj[b][c]+=0.5; adj[c][b]+=0.5; }
+          [a,b,c].forEach(k=>{ if(k!=null) mention[k]+=1; });
         }
-      }
+      });
     });
 
-    btnReset.addEventListener('click', () => {
-      results = [];
-      best = 0;
-      saveBest();
-      updateStats();
-      msg.textContent = 'Nollattu. Klikkaa aloittaaksesi.';
-      sub.textContent = 'Sarja: 5 yritystä.';
-      state = 'idle';
-      setBg('var(--bg)');
+    // Scores & titles
+    const degree = adj.map(row=>row.reduce((a,b)=>a+b,0));
+    const mostMentionIdx = argMax(mention);
+    const centerIdx = argMax(degree);
+
+    // "Villikortti": etsitään harvinaiset parit (kokonaispaino ~1)
+    let wildPairs = [];
+    for(let i=0;i<N;i++){
+      for(let j=i+1;j<N;j++){
+        const w = adj[i][j];
+        if (w>0 && w <= 1) wildPairs.push({i,j,w});
+      }
+    }
+    // "Salainen suosikki": eniten mainintoja salaisessa kierroksessa
+    let secretMentions = Array(N).fill(0);
+    if(secretIndex>=0){
+      const A = answers[secretIndex]||{};
+      Object.values(A).forEach(o=>{
+        (o.choices||[]).forEach(id=>{
+          const k=id2idx.get(id); if(k!=null) secretMentions[k]+=1;
+        });
+      });
+    }
+    const secretIdx = secretIndex>=0 ? argMax(secretMentions) : null;
+
+    // grade win for streak (simple: if your node among top 2 mentions OR degree)
+    const youIdx = 0;
+    const topMentions = topK(mention,2).includes(youIdx);
+    const topDegree = topK(degree,2).includes(youIdx);
+    const winToday = topMentions || topDegree;
+    const streak = updateStreak(winToday);
+
+    // Render reveal
+    renderReveal({adj, mention, degree, mostMentionIdx, centerIdx, secretIdx, wildPairs, streak});
+  }
+
+  function renderReveal({adj, mention, degree, mostMentionIdx, centerIdx, secretIdx, wildPairs, streak}){
+    // Layout: circle
+    const W=800,H=580, cx=W/2, cy=H/2, R=Math.min(W,H)/2-70;
+    const pos = players.map((p,i)=>{
+      const ang = (i/players.length)*(Math.PI*2) - Math.PI/2;
+      return {x: cx + R*Math.cos(ang), y: cy + R*Math.sin(ang)};
     });
 
-    // --- Init
-    (function init(){
-      // peli URL-paramista (esim. ?game=time-guess)
-      const p = new URLSearchParams(location.search).get('game');
-      if(p && ['reaction','time-guess'].includes(p)){
-        sel.value = p;
+    // Build SVG elements (edges animated)
+    const maxW = maxMatrix(adj);
+    const lines=[];
+    for(let i=0;i<players.length;i++){
+      for(let j=i+1;j<players.length;j++){
+        const w = adj[i][j];
+        if(w<=0) continue;
+        const sw = 1 + (w/maxW)*8;
+        lines.push({i,j,sw,delay: 80*(lines.length+1)});
       }
-      setGame(sel.value);
-    })();
-  </script>
+    }
+
+    screen.innerHTML = `
+      <div class="reveal-wrap">
+        <div>
+          <div class="title">Paljastus</div>
+          <div class="sub">Viivat syttyvät kierroksien mukaan. Paksuus = vahvuus. Klikkaa solmua nähdäksesi summat.</div>
+          <svg viewBox="0 0 ${W} ${H}" id="net">
+            <g id="edges"></g>
+            <g id="nodes"></g>
+          </svg>
+        </div>
+        <div class="legend">
+          <p class="title2">Tittelit</p>
+          <div id="awards" class="grid" style="gap:8px"></div>
+          <hr style="border:0;border-top:1px solid var(--border);margin:12px 0" />
+          <p class="title2">Yhteenveto</p>
+          <div class="grid" id="summary" style="gap:6px"></div>
+          <div class="share" style="margin-top:10px">
+            <button class="acc" id="againBtn">Pelaa uudestaan</button>
+            <button id="shareBtn">📤 Jaa tulos</button>
+          </div>
+          <div class="hint" style="margin-top:6px">Päivän challenge on sama kaikille tänään. Streak: <strong>${streak}</strong>.</div>
+        </div>
+      </div>
+    `;
+
+    // Draw edges with staggered fade
+    const gEdges = document.getElementById('edges');
+    lines.forEach((L,k)=>{
+      const a=pos[L.i], b=pos[L.j];
+      const path = document.createElementNS("http://www.w3.org/2000/svg","line");
+      path.setAttribute("x1",a.x); path.setAttribute("y1",a.y);
+      path.setAttribute("x2",b.x); path.setAttribute("y2",b.y);
+      path.setAttribute("stroke-width", String(L.sw));
+      path.setAttribute("class","line fadein");
+      path.style.animationDelay = (200 + L.delay) + "ms";
+      gEdges.appendChild(path);
+    });
+
+    // Draw nodes
+    const gNodes = document.getElementById('nodes');
+    players.forEach((p,i)=>{
+      const g = document.createElementNS("http://www.w3.org/2000/svg","g");
+      g.setAttribute("transform", `translate(${pos[i].x},${pos[i].y})`);
+      const r = 16 + Math.min(18, mention[i]); // bubble by mentions
+      const c = document.createElementNS("http://www.w3.org/2000/svg","circle");
+      c.setAttribute("r", String(r));
+      c.setAttribute("class","node");
+      const label = document.createElementNS("http://www.w3.org/2000/svg","text");
+      label.setAttribute("class","label");
+      label.setAttribute("y", String(r+14));
+      label.textContent = p.name;
+      g.appendChild(c); g.appendChild(label);
+      g.addEventListener('click', ()=>{
+        const s=document.getElementById('summary');
+        s.innerHTML = `
+          <div class="pill"><strong>${p.name}</strong></div>
+          <div class="pill">Maininnat: <strong>${mention[i]}</strong></div>
+          <div class="pill">Asteen summa (linkit): <strong>${degree[i].toFixed(1)}</strong></div>
+        `;
+      });
+      gNodes.appendChild(g);
+    });
+
+    // Awards
+    const awards = document.getElementById('awards');
+    const ym = players[mostMentionIdx]?.name;
+    const ck = players[centerIdx]?.name;
+    const ss = (secretIdx!=null && secretIdx>=0) ? players[secretIdx]?.name : null;
+    const wild = wildPairs.slice(0,3).map(w=>`${players[w.i].name} — ${players[w.j].name}`);
+
+    awards.innerHTML = `
+      <div class="pill">🏆 <strong>Yhteyksien mestari:</strong> <span class="winner">${ym}</span></div>
+      <div class="pill">🕸️ <strong>Keskiö:</strong> <span class="winner">${ck}</span></div>
+      ${ss?`<div class="pill">🫥 <strong>Salainen suosikki:</strong> <span class="winner">${ss}</span></div>`:""}
+      ${wild.length?`<div class="pill">🃏 <strong>Villikortit:</strong> ${wild.join(", ")}</div>`:""}
+    `;
+
+    // Share & again
+    document.getElementById('againBtn').onclick = () => location.reload();
+    document.getElementById('shareBtn').onclick = async () => {
+      const text = `Sokkosidokset – Päivän challenge ${dayKey()}\nMestari: ${ym}, Keskiö: ${ck}\nKokeile: ${location.href}`;
+      try{
+        if(navigator.share){ await navigator.share({title:"Sokkosidokset", text, url: location.href}); }
+        else { await navigator.clipboard.writeText(text); alert("Kopioitu leikepöydälle!"); }
+      }catch{}
+    };
+  }
+
+  // ---------- helpers ----------
+  function argMax(arr){ let m=-Infinity,idx=0; for(let i=0;i<arr.length;i++){ if(arr[i]>m){m=arr[i]; idx=i;} } return idx; }
+  function topK(arr,k){
+    return arr.map((v,i)=>({v,i})).sort((a,b)=>b.v-a.v).slice(0,k).map(x=>x.i);
+  }
+  function maxMatrix(m){ let mx=0; for(let i=0;i<m.length;i++){ for(let j=0;j<m[i].length;j++){ if(m[i][j]>mx) mx=m[i][j]; } } return Math.max(mx,1); }
+
+  function updateStreak(win){
+    const last = localStorage.getItem('ss_last');
+    const today = dayKey();
+    let streak = Number(localStorage.getItem('ss_streak')||0);
+    if(win){
+      if(last && daysDiff(last,today)===1) streak++;
+      else streak = 1;
+      localStorage.setItem('ss_last', today);
+      localStorage.setItem('ss_streak', String(streak));
+    }
+    const sb = document.getElementById('streakBadge');
+    if(sb) sb.textContent = `🔥 Streak ${streak}`;
+    return streak;
+  }
+  function daysDiff(a,b){ // both YYYY-MM-DD
+    const d1=new Date(a+"T00:00:00Z").getTime(), d2=new Date(b+"T00:00:00Z").getTime();
+    return Math.round((d2-d1)/86400000);
+  }
+
+})();
+</script>
 </body>
 </html>
