@@ -38,8 +38,6 @@
   button.acc{background:var(--acc);color:#04121e}
   button.ghost{background:transparent;border:1px dashed var(--border)}
   button:disabled{opacity:.6;cursor:not-allowed}
-  .progress{height:8px;background:#0b162d;border:1px solid var(--border);border-radius:999px;overflow:hidden}
-  .bar{height:100%;width:0;background:linear-gradient(90deg,#22c55e,#38bdf8)}
   .hint{font-size:13px;color:var(--muted)}
   .footer{padding:12px;text-align:center;color:var(--muted);font-size:12px}
 
@@ -63,6 +61,9 @@
   .line{stroke:#60a5fa; stroke-opacity:.85; stroke-linecap:round}
   .node{fill:#e5e7eb}
   .label{font-size:12px; fill:#cdd7ee; dominant-baseline:middle; text-anchor:middle}
+
+  /* Toast */
+  #toast{position:fixed;left:50%;top:18px;transform:translateX(-50%);background:#0b162d;border:1px solid #27324a;color:#e5e7eb;padding:8px 12px;border-radius:999px;font-weight:800;z-index:9999;opacity:0;transition:opacity .15s}
 </style>
 </head>
 <body>
@@ -82,6 +83,7 @@
 </main>
 
 <div class="footer">© <span id="year"></span> Reaktioaika.fi • Demo</div>
+<div id="toast"></div>
 
 <script>
 (() => {
@@ -108,7 +110,6 @@
 
   // ---------- State ----------
   const screen = document.getElementById('screen');
-  const DAILY_RND = rng(dayKey()+SECRET);
   let playerName = "";
   let players = []; // {id,name,isHuman}
   let rounds = [];  // generated questions
@@ -116,6 +117,7 @@
   let current = -1;
   let answers = {}; // per round: { playerId: {choices:[ids]} }
   let timerInt = null; let timeLeft = 0;
+  let roundDone = false; // estä tuplasiirtymä
 
   const BOT_NAMES = ["Nova","Orion","Vega","Kide","Saga","Myrsky","Aava","Pixel","Zen","Echo","Flux","Lyra","Kuu","Bolt","Halo"];
 
@@ -240,6 +242,7 @@
     pool.push({type:"group3", pick:3, text:pick(Q[theme].group3, rr())});
     pool.push({type:"pair", pick:2, text:pick(Q[theme].pair, rr())});
     pool.push({type:"single", pick:1, text:pick(Q[theme].single, rr())});
+    // salainen kierros
     pool.push({type: rr()>0.5?"pair":"single", pick: rr()>0.5?2:1, text: rr()>0.5?pick(Q[theme].pair, rr()):pick(Q[theme].single, rr()), secret:true});
     rounds = pool;
     answers = {};
@@ -249,6 +252,7 @@
   function nextRound(){
     current++;
     if(current >= rounds.length){ revealAll(); return; }
+    roundDone = false;
     renderRound(rounds[current], current+1, rounds.length);
     startTimer(55, finishRoundAuto);
   }
@@ -323,12 +327,13 @@
       stopTimer();
       if(!answers[current]) answers[current] = {};
       answers[current][you.id] = { choices: Array.from(sel) };
-      botAnswerRound(r, current);
-      intermission();
+      showToast("Vastaus lukittu");
+      botAnswerRound(r, current);   // botit vastaavat
+      maybeAdvance();               // siirry heti jos kaikki valmiit
     };
     document.getElementById('lockBtn').onclick = lock;
-    document.addEventListener('keydown', keyLockOnce);
-    function keyLockOnce(e){ if(e.key==='Enter'){ e.preventDefault(); lock(); document.removeEventListener('keydown', keyLockOnce); } }
+    const keyLockOnce = (e)=>{ if(e.key==='Enter'){ e.preventDefault(); lock(); document.removeEventListener('keydown', keyLockOnce); } };
+    document.addEventListener('keydown', keyLockOnce, { once:true });
   }
 
   function prettyType(r){ return r.type==='pair'?'Paritus':r.type==='single'?'Yksilö':'Pienryhmä (3)'; }
@@ -338,10 +343,12 @@
     stopTimer();
     const ring = document.getElementById('ring');
     const lbl = document.getElementById('timerLbl');
+    if(!ring || !lbl) return;
     const C = 2*Math.PI*44; // ~276
     timeLeft = seconds;
     const total = seconds;
     ring.style.strokeDasharray = String(C);
+    lbl.textContent = String(seconds);
     timerInt = setInterval(()=>{
       timeLeft--;
       const ratio = Math.max(0, (total-timeLeft)/total);
@@ -351,11 +358,21 @@
     }, 1000);
   }
   function stopTimer(){ if(timerInt){ clearInterval(timerInt); timerInt=null; } }
-  function finishRoundAuto(){ // auto‑lock: empty if not answered
+
+  function finishRoundAuto(){ // aika loppui → kirjaa tyhjä, botit vastaavat, etene jos valmista
     if(!answers[current]) answers[current]={};
     if(!answers[current]["p0"]) answers[current]["p0"]={choices:[]};
     botAnswerRound(rounds[current], current);
-    intermission();
+    maybeAdvance();
+  }
+
+  // ---------- Eteneminen automaattisesti ----------
+  function maybeAdvance(){
+    const a = answers[current] || {};
+    if (!roundDone && Object.keys(a).length === players.length) {
+      roundDone = true;
+      setTimeout(() => nextRound(), 300); // pieni viive tuntuman vuoksi
+    }
   }
 
   // ---------- Bot logic ----------
@@ -386,11 +403,13 @@
         const scored = pool.map(id=>({id,score:aff[bot.id][id]+rr()*0.7})).sort((a,b)=>b.score-a.score);
         commit(bot.id, [scored[0].id]);
       } else if(r.type==="group3"){
-        const scored = pool.map(id=>({id,score:aff[bot.id][id]+rr()*0.5})).sort((a,b)=>b.score-a.score).slice(0,3);
+        const scored = pool.map(id=>({id,score:aff[bot.id][id]+rr()*0.5})).sort((a,b)=>b.score-a-score).slice(0,3);
         commit(bot.id, scored.map(x=>x.id));
       }
     });
     function commit(pid, ids){ if(!answers[idx]) answers[idx]={}; answers[idx][pid]={choices:ids}; }
+    // kun botit valmiit, tarkista voiko edetä
+    maybeAdvance();
   }
 
   // ---------- Reveal & PNG export ----------
@@ -451,7 +470,7 @@
 
   function renderReveal({adj, mention, degree, mostMentionIdx, centerIdx, secretIdx, wildPairs, streak}){
     const W=800,H=580,cx=W/2,cy=H/2,R=Math.min(W,H)/2-70;
-    const pos = players.map((p,i)=>{ const ang=(i/players.length)*(Math.PI*2)-Math.PI/2; return {x:cx+R*Math.cos(ang), y:cy*Math.sin(ang)+cy}; });
+    const pos = players.map((p,i)=>{ const ang=(i/players.length)*(Math.PI*2)-Math.PI/2; return {x:cx+R*Math.cos(ang), y:cy+R*Math.sin(ang)}; });
 
     const maxW = maxMatrix(adj);
     const lines=[];
@@ -564,7 +583,7 @@
     };
 
     document.getElementById('shareBtn').onclick = async () => {
-      const text = `Sokkosidokset – Päivän challenge ${dayKey()} (${theme})\nMestari: ${ym}, Keskiö: ${ck}\nKokeile: ${location.href}`;
+      const text = `Sokkosidokset – Päivän challenge ${dayKey()} (${theme})\nMestari: ${players[mostMentionIdx]?.name}, Keskiö: ${players[centerIdx]?.name}\nKokeile: ${location.href}`;
       try{
         if(navigator.share){ await navigator.share({title:"Sokkosidokset", text, url: location.href}); }
         else { await navigator.clipboard.writeText(text); alert("Kopioitu leikepöydälle!"); }
@@ -593,6 +612,12 @@
   function daysDiff(a,b){
     const d1=new Date(a+"T00:00:00Z").getTime(), d2=new Date(b+"T00:00:00Z").getTime();
     return Math.round((d2-d1)/86400000);
+  }
+
+  function showToast(txt){
+    const t = document.getElementById('toast');
+    t.textContent = txt; t.style.opacity='1';
+    setTimeout(()=> t.style.opacity='0', 550);
   }
 })();
 </script>
